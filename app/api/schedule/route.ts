@@ -1,0 +1,45 @@
+import { auth } from "@/lib/auth";
+import { listEvents } from "@/lib/google-calendar";
+import { NextResponse } from "next/server";
+
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const start = searchParams.get("start");
+    const end = searchParams.get("end");
+
+    if (!start || !end) {
+        return NextResponse.json({ error: "Missing start or end params" }, { status: 400 });
+    }
+
+    const session = await auth();
+    // @ts-ignore
+    const accessToken = session?.accessToken;
+
+    if (!accessToken) {
+        // Fallback for demo or non-logged-in user: return empty
+        // Or could verify session at all
+        return NextResponse.json({ schedules: [] });
+    }
+
+    try {
+        const events = await listEvents(accessToken, start, end);
+
+        // Map to internal format compatible with frontend
+        const schedules = events.map(event => ({
+            id: event.id,
+            title: event.summary,
+            start: event.start.dateTime || event.start.date, // handling all-day
+            end: event.end.dateTime || event.end.date,
+            category: "google", // Default category
+            // createdAt: ...
+        }));
+
+        return NextResponse.json({ schedules });
+    } catch (error) {
+        console.error("Schedule fetch error:", error);
+        return NextResponse.json(
+            { error: "Failed to fetch schedules" },
+            { status: 500 }
+        );
+    }
+}
