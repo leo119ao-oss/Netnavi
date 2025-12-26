@@ -155,8 +155,9 @@ export async function POST(req: Request) {
                 {
                     functionResponse: {
                         name: name,
-                        functionResponse: functionResponse || { error: "No response from tool" }
+                        response: functionResponse || { error: "No response from tool" }
                     }
+                }
             ]);
             response = await result.response;
             functionCalls = response.functionCalls();
