@@ -29,6 +29,7 @@ export default function ChatInterface() {
         },
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const status = isLoading ? "thinking" : "idle";
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {

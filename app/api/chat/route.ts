@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth"; // Import auth
 import { listMessages, getMessage } from "@/lib/gmail";
-// import { analyzeEmail } from "@/lib/mail-agent";
+import { analyzeEmail } from "@/lib/mail-agent";
 import { createEvent, listEvents } from "@/lib/google-calendar";
 
 export async function POST(req: Request) {
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
                 });
                 functionResponse = { result: "Memory saved", memory: newMemory };
             } else if (name === "checkGmail") {
-                // Check Gmail logic
+                // Check Gmail logic with AI analysis
                 // @ts-ignore
                 const accessToken = session?.accessToken;
                 if (!accessToken) {
@@ -124,24 +124,32 @@ export async function POST(req: Request) {
                         const maxResults = functionArgs.maxResults || 5;
                         const messages = await listMessages(accessToken, query, maxResults);
 
-                        const emailDetails = [];
+                        const analyzedEmails = [];
                         for (const msg of messages) {
                             const details = await getMessage(accessToken, msg.id);
-                            // Analyze to get summary if needed, or just pass raw subject/snippet to save tokens
-                            // Let's pass raw details for now, or lightweight analysis
-                            emailDetails.push({
-                                subject: details.subject,
-                                from: details.from,
-                                date: details.date,
-                                snippet: details.snippet,
-                                // body: details.body.substring(0, 200) // Truncate body to save context
-                            });
+                            // Use AI to analyze each email
+                            const analysis = await analyzeEmail(details.subject, details.body, details.from);
+
+                            if (analysis.isImportant) {
+                                analyzedEmails.push({
+                                    subject: details.subject,
+                                    from: details.from,
+                                    date: details.date,
+                                    category: analysis.category,
+                                    summary: analysis.summary,
+                                    scheduleCandidate: analysis.scheduleCandidate,
+                                    replyDraft: analysis.replyDraft,
+                                });
+                            }
                         }
 
-                        if (emailDetails.length === 0) {
-                            functionResponse = { result: "No emails found matching the query." };
+                        if (analyzedEmails.length === 0) {
+                            functionResponse = { result: "No important emails found." };
                         } else {
-                            functionResponse = { result: "Emails found", emails: emailDetails };
+                            functionResponse = {
+                                result: `Found ${analyzedEmails.length} important email(s)`,
+                                importantEmails: analyzedEmails
+                            };
                         }
                     } catch (e) {
                         console.error("Gmail tool error:", e);

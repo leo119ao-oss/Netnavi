@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { listEvents } from "@/lib/google-calendar";
+import { listEvents, createEvent } from "@/lib/google-calendar";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -43,3 +43,51 @@ export async function GET(req: Request) {
         );
     }
 }
+
+export async function POST(req: Request) {
+    const session = await auth();
+    // @ts-ignore
+    const accessToken = session?.accessToken;
+
+    if (!accessToken) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const body = await req.json();
+        const { title, start, end, description, location, category } = body;
+
+        if (!title || !start || !end) {
+            return NextResponse.json(
+                { error: "Missing required fields: title, start, end" },
+                { status: 400 }
+            );
+        }
+
+        const newEvent = await createEvent(accessToken, {
+            summary: title,
+            start: { dateTime: start },
+            end: { dateTime: end },
+            description: description || `Created by NetNavi [Category: ${category || "general"}]`,
+            location: location,
+        });
+
+        return NextResponse.json({
+            success: true,
+            event: {
+                id: newEvent.id,
+                title: newEvent.summary,
+                start: newEvent.start?.dateTime || newEvent.start?.date,
+                end: newEvent.end?.dateTime || newEvent.end?.date,
+                link: newEvent.htmlLink,
+            },
+        });
+    } catch (error) {
+        console.error("Schedule creation error:", error);
+        return NextResponse.json(
+            { error: "Failed to create schedule", details: error instanceof Error ? error.message : String(error) },
+            { status: 500 }
+        );
+    }
+}
+

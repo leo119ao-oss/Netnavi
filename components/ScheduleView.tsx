@@ -18,7 +18,7 @@ export default function ScheduleView() {
     useEffect(() => {
         // 今日から1週間分の日付を生成
         const today = new Date();
-        const nextWeek = [];
+        const nextWeek: Date[] = [];
         for (let i = 0; i < 7; i++) {
             const date = new Date(today);
             date.setDate(today.getDate() + i);

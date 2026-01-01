@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### 環境変数の設定
+
+Vercelでデプロイする際は、以下の環境変数を設定してください：
+
+- `DATABASE_URL`: PostgreSQLデータベースの接続URL（Vercel Postgresを使用する場合は自動設定されます）
+- `GOOGLE_CLIENT_ID`: Google OAuth 2.0 クライアントID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth 2.0 クライアントシークレット
+- `NEXTAUTH_SECRET`: NextAuthのシークレットキー（`openssl rand -base64 32`で生成可能）
+- `NEXTAUTH_URL`: アプリのURL（例: `https://your-app.vercel.app`）
+- `NEXT_PUBLIC_GEMINI_API_KEY`: Google Gemini APIキー
+
+**注意**: データベースはPostgreSQLを使用します。SQLiteはVercelでは動作しません。

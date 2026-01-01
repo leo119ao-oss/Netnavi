@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Orbitron, Roboto } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
@@ -14,21 +14,26 @@ const roboto = Roboto({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#0f172a",
+};
+
 export const metadata: Metadata = {
   title: "NetNavi",
   description: "AI Partner & Personal Assistant",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "NetNavi",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  themeColor: "#0f172a",
 };
 
 export default function RootLayout({
